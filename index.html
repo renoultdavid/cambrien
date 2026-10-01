@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mission Burgess - Exploration au Projecteur (-508 Ma)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- EN-TÊTE DE MISSION -->
+  <header>
+    <div class="brand">
+      <span class="mission-pill">MISSION COLLÈGE</span>
+      <h1>Paléo-Exploration : Les Schistes de Burgess</h1>
+    </div>
+    
+    <button class="btn-logbook" onclick="toggleLogbook()">
+      📓 Spécimens identifiés (<span id="log-count">0</span>/2)
+    </button>
+  </header>
+
+  <!-- SCÈNE D'EXPLORATION -->
+  <main class="scene-container" id="scene">
+    <!-- Balise 1 : Anomalocaris -->
+    <div class="beacon beacon-red" id="beacon-ano" style="top: 28%; left: 68%;" onclick="openModal('modal-anomalocaris')">
+      <div class="beacon-pulse-box">
+        <div class="beacon-ring"></div>
+        <div class="beacon-ring delay1"></div>
+        <div class="beacon-ring delay2"></div>
+        <div class="beacon-core"></div>
+      </div>
+      <div class="beacon-label">
+        <span>Anomalocaris canadensis</span>
+      </div>
+    </div>
+
+    <!-- Balise 2 : Opabinia (Libellé à gauche) -->
+    <div class="beacon beacon-pink label-left" id="beacon-opa" style="top: 56%; left: 45%;" onclick="openModal('modal-opabinia')">
+      <div class="beacon-pulse-box">
+        <div class="beacon-ring"></div>
+        <div class="beacon-ring delay1"></div>
+        <div class="beacon-ring delay2"></div>
+        <div class="beacon-core"></div>
+      </div>
+      <div class="beacon-label">
+        <span>Opabinia regalis</span>
+      </div>
+    </div>
+
+    <!-- Voile noir pour le projecteur -->
+    <div id="darkness-layer"></div>
+
+    <!-- Consigne d'exploration -->
+    <div class="intro-banner" id="intro-banner">
+      <h2>🔦 Faisceau d'exploration</h2>
+      <p>L'océan cambrien est plongé dans le noir complet.<br>
+      <strong>Faites glisser votre doigt ou votre souris</strong> pour balayer les fonds marins au projecteur et repérer les animaux dissimulés.</p>
+    </div>
+
+    <!-- Bannière de succès plein jour -->
+    <div class="victory-badge" id="victory-badge">
+      <span style="font-size: 1.4rem;">🌟</span>
+      <span>Mission accomplie ! L'écosystème de Burgess est entièrement révélé.</span>
+    </div>
+
+    <!-- Pop-up double : Bilan de l'expédition -->
+    <div class="final-summary-overlay" id="final-summary">
+      <div class="summary-cards-wrapper">
+        <div class="summary-card ano">
+          <div class="summary-header">
+            <div class="summary-title" style="color: var(--glow-red);">
+              <span>🦐</span> Anomalocaris
+            </div>
+            <span class="summary-tag ano">Apex Predator</span>
+          </div>
+          <div class="terminal-body">
+            <span id="text-summary-ano"></span><span class="cursor-caret" id="caret-ano"></span>
+          </div>
+        </div>
+
+        <div class="summary-card opa">
+          <div class="summary-header">
+            <div class="summary-title" style="color: var(--glow-pink);">
+              <span>🌸</span> Opabinia
+            </div>
+            <span class="summary-tag opa">Arthropode Souche</span>
+          </div>
+          <div class="terminal-body">
+            <span id="text-summary-opa"></span><span class="cursor-caret" id="caret-opa"></span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-next-site" id="btn-to-site" onclick="openSiteModal()" style="display: none;">
+        <span>⛏️ Étape suivante : Le site de fouilles réel de Burgess Shale</span>
+        <span>➔</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- CARNET DE BORD LATÉRAL RÉTRACTABLE -->
+  <aside class="logbook-drawer" id="logbook">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h2 style="font-size: 1.15rem; color: #fff;">📓 Carnet de Paléontologie</h2>
+      <button onclick="toggleLogbook()" style="background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer;">&times;</button>
+    </div>
+
+    <div style="background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.3); padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; color: #cdeefe; margin-bottom: 1.5rem;">
+      <strong>🎯 Objectif de mission :</strong><br>
+      Balayez le fond au projecteur pour débusquer les 2 spécimens et réussir leurs défis d'enquête afin de lever l'obscurité.
+    </div>
+
+    <div class="specimen-item" id="log-item-ano">
+      <span style="font-size: 1.3rem;">🦐</span>
+      <div>
+        <strong style="color:#fff; display:block; font-size:0.88rem;">1. Anomalocaris</strong>
+        <span id="log-status-ano" style="color:var(--text-muted); font-size:0.75rem;">À localiser au projecteur</span>
+      </div>
+    </div>
+
+    <div class="specimen-item" id="log-item-opa">
+      <span style="font-size: 1.3rem;">🌸</span>
+      <div>
+        <strong style="color:#fff; display:block; font-size:0.88rem;">2. Opabinia</strong>
+        <span id="log-status-opa" style="color:var(--text-muted); font-size:0.75rem;">À localiser au projecteur</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MODALE 1 : ANOMALOCARIS -->
+  <div class="modal-overlay" id="modal-anomalocaris">
+    <div class="card">
+      <button class="btn-close" onclick="closeModal('modal-anomalocaris')">&times;</button>
+      
+      <div id="panel-video-ano" class="view-panel">
+        <div class="video-viewport">
+          <div id="yt-player-ano"></div>
+        </div>
+
+        <div class="card-content">
+          <div class="species-header">
+            <div>
+              <h2 class="species-title">Anomalocaris canadensis</h2>
+              <div class="species-subtitle">« Crevette anormale du Canada » — Radiodonta</div>
+            </div>
+            <button class="btn-start-quiz" style="background: linear-gradient(135deg, #ff3344, #ffaa00);" onclick="switchToQuiz('ano')">
+              ⚡ Passer au Défi d'Enquête
+            </button>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box" style="color: var(--glow-red);">
+              <div class="stat-label">Niveau trophique</div>
+              <div class="stat-value">Superprédateur</div>
+            </div>
+            <div class="stat-box" style="color: var(--glow-amber);">
+              <div class="stat-label">Envergure</div>
+              <div class="stat-value">60 à 100 cm</div>
+            </div>
+            <div class="stat-box" style="color: var(--glow-cyan);">
+              <div class="stat-label">Vision</div>
+              <div class="stat-value">16 000 facettes</div>
+            </div>
+          </div>
+
+          <p class="desc-text">
+            Visionnez attentivement la reconstitution en 3D. Dès la fin de la vidéo, le questionnaire d'observation s'activera automatiquement.
+          </p>
+        </div>
+      </div>
+
+      <div id="panel-quiz-ano" class="panel-quiz-view">
+        <div class="quiz-header">
+          <div>
+            <span class="quiz-badge" style="background: rgba(255, 51, 68, 0.2); border: 1px solid var(--glow-red); color: #ff8899;">DÉFI 1 : LE SUPERPRÉDATEUR</span>
+            <h2 style="font-size: 1.4rem; color: #fff; margin-top: 4px;">Rapport : Anomalocaris</h2>
+          </div>
+          <div style="font-family: monospace; font-size: 0.9rem; color: var(--glow-cyan);">
+            Score : <span id="score-ano" style="color: var(--glow-green); font-weight: bold;">0</span> / 3
+          </div>
+        </div>
+
+        <div class="quiz-card theme-cyan" id="q-ano-1">
+          <div class="quiz-question-title">
+            <span class="q-number" style="background: var(--glow-cyan);">1</span>
+            Comment Anomalocaris se déplace-t-il dans l'eau ?
+          </div>
+          <div class="quiz-options">
+            <button class="option-btn" onclick="checkAnswer('ano', 1, 0, false)"><span class="opt-badge">A</span><span>En marchant sur le fond marin avec des pattes articulées</span></button>
+            <button class="option-btn" onclick="checkAnswer('ano', 1, 1, true)"><span class="opt-badge">B</span><span>En ondulant grâce à des palettes latérales souples (nage active)</span></button>
+            <button class="option-btn" onclick="checkAnswer('ano', 1, 2, false)"><span class="opt-badge">C</span><span>Par propulsion à réaction comme les pieuvres</span></button>
+          </div>
+          <div class="feedback-box" id="fb-ano-1"></div>
+        </div>
+
+        <div class="quiz-card theme-amber" id="q-ano-2">
+          <div class="quiz-question-title">
+            <span class="q-number" style="background: var(--glow-amber);">2</span>
+            Quel est son rôle dans la chaîne alimentaire cambrienne ?
+          </div>
+          <div class="quiz-options">
+            <button class="option-btn" onclick="checkAnswer('ano', 2, 0, true)"><span class="opt-badge">A</span><span>Superprédateur : il chasse d'autres animaux marins</span></button>
+            <button class="option-btn" onclick="checkAnswer('ano', 2, 1, false)"><span class="opt-badge">B</span><span>Herbivore : il broute les tapis d'algues</span></button>
+            <button class="option-btn" onclick="checkAnswer('ano', 2, 2, false)"><span class="opt-badge">C</span><span>Détritivore : il filtre le sable</span></button>
+          </div>
+          <div class="feedback-box" id="fb-ano-2"></div>
+        </div>
+
+        <div class="quiz-card theme-purple" id="q-ano-3">
+          <div class="quiz-question-title">
+            <span class="q-number" style="background: var(--glow-purple); color: #fff;">3</span>
+            Comment capture-t-il ses proies ?
+          </div>
+          <div class="quiz-options">
+            <button class="option-btn" onclick="checkAnswer('ano', 3, 0, false)"><span class="opt-badge">A</span><span>Il les paralyse avec des dards venimeux</span></button>
+            <button class="option-btn" onclick="checkAnswer('ano', 3, 1, true)"><span class="opt-badge">B</span><span>Il les saisit avec ses deux bras antérieurs épineux</span></button>
+            <button class="option-btn" onclick="checkAnswer('ano', 3, 2, false)"><span class="opt-badge">C</span><span>Il les aspire d'un coup dans son œsophage</span></button>
+          </div>
+          <div class="feedback-box" id="fb-ano-3"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+          <button class="btn-replay-video" onclick="switchToVideo('ano')">↺ Revoir la vidéo</button>
+          <div id="congrats-ano" style="display:none; color:var(--glow-green); font-weight:bold;">✓ Rapport Anomalocaris validé !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE 2 : OPABINIA -->
+  <div class="modal-overlay" id="modal-opabinia">
+    <div class="card">
+      <button class="btn-close" onclick="closeModal('modal-opabinia')">&times;</button>
+      
+      <div id="panel-video-opa" class="view-panel">
+        <div class="video-viewport">
+          <div id="yt-player-opa"></div>
+        </div>
+
+        <div class="card-content">
+          <div class="species-header">
+            <div>
+              <h2 class="species-title">Opabinia regalis</h2>
+              <div class="species-subtitle">« L'énigme à 5 yeux » — Arthropode souche</div>
+            </div>
+            <button class="btn-start-quiz" style="background: linear-gradient(135deg, #ff2a85, #bd00ff); color: #fff;" onclick="switchToQuiz('opa')">
+              ⚡ Défi d'Enquête Opabinia
+            </button>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box" style="color: var(--glow-pink);">
+              <div class="stat-label">Champ visuel</div>
+              <div class="stat-value">5 yeux à 360°</div>
+            </div>
+            <div class="stat-box" style="color: var(--glow-cyan);">
+              <div class="stat-label">Outil de chasse</div>
+              <div class="stat-value">Trompe avec pince</div>
+            </div>
+            <div class="stat-box" style="color: var(--glow-amber);">
+              <div class="stat-label">Taille réelle</div>
+              <div class="stat-value">4 à 7 cm</div>
+            </div>
+          </div>
+
+          <p class="desc-text">
+            Observez la vidéo : remarquez comment il utilise sa trompe flexible pour sonder la vase et attraper de petits vers benthiques. À la fin de la vidéo, le questionnaire s'activera.
+          </p>
+        </div>
+      </div>
+
+      <div id="panel-quiz-opa" class="panel-quiz-view">
+        <div class="quiz-header">
+          <div>
+            <span class="quiz-badge" style="background: rgba(255, 42, 133, 0.2); border: 1px solid var(--glow-pink); color: #ff80b7;">DÉFI 2 : L'ÉTRANGÈTE ÉVOLUTIVE</span>
+            <h2 style="font-size: 1.4rem; color: #fff; margin-top: 4px;">Rapport : Opabinia</h2>
+          </div>
+          <div style="font-family: monospace; font-size: 0.9rem; color: var(--glow-pink);">
+            Score : <span id="score-opa" style="color: var(--glow-green); font-weight: bold;">0</span> / 3
+          </div>
+        </div>
+
+        <div class="quiz-card theme-pink" id="q-opa-1">
+          <div class="quiz-question-title">
+            <span class="q-number" style="background: var(--glow-pink); color: #fff;">1</span>
+            Combien d'yeux possède Opabinia pour surveiller son environnement ?
+          </div>
+          <div class="quiz-options">
+            <button class="option-btn" onclick="checkAnswer('opa', 1, 0, false)"><span class="opt-badge">A</span><span>Deux yeux comme la majorité des animaux</span></button>
+            <button class="option-btn" onclick="checkAnswer('opa', 1, 1, true)"><span class="opt-badge">B</span><span>Cinq yeux montés sur pédoncules pour voir à 360°</span></button>
+            <button class="option-btn" onclick="checkAnswer('opa', 1, 2, false)"><span class="opt-badge">C</span><span>Aucun œil : il est aveugle</span></button>
+          </div>
+          <div class="feedback-box" id="fb-opa-1"></div>
+        </div>
+
+        <div class="quiz-card theme-cyan" id="q-opa-2">
+          <div class="quiz-question-title">
+            <span class="q-number" style="background: var(--glow-cyan);">2</span>
+            Comment utilise-t-il sa trompe frontale ?
+          </div>
+          <div class="quiz-options">
+            <button class="option-btn" onclick="checkAnswer('opa', 2, 0, false)"><span class="opt-badge">A</span><span>Pour respirer hors de l'eau</span></button>
+            <button class="option-btn" onclick="checkAnswer('opa', 2, 1, true)"><span class="opt-badge">B</span><span>Pour fouiller la vase et attraper des vers avec sa pince</span></button>
+            <button class="option-btn" onclick="checkAnswer('opa', 2, 2, false)"><span class="opt-badge">C</span><span>Pour nager à reculons</span></button>
+          </div>
+          <div class="feedback-box" id="fb-opa-2"></div>
+        </div>
+
+        <div class="quiz-card theme-amber" id="q-opa-3">
+          <div class="quiz-question-title">
+            <span class="q-number" style="background: var(--glow-amber);">3</span>
+            Quelle était la taille réelle d'un Opabinia ?
+          </div>
+          <div class="quiz-options">
+            <button class="option-btn" onclick="checkAnswer('opa', 3, 0, false)"><span class="opt-badge">A</span><span>Environ 2 mètres</span></button>
+            <button class="option-btn" onclick="checkAnswer('opa', 3, 1, true)"><span class="opt-badge">B</span><span>Environ 4 à 7 cm (la taille d'un doigt)</span></button>
+            <button class="option-btn" onclick="checkAnswer('opa', 3, 2, false)"><span class="opt-badge">C</span><span>Microscopique</span></button>
+          </div>
+          <div class="feedback-box" id="fb-opa-3"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+          <button class="btn-replay-video" onclick="switchToVideo('opa')">↺ Revoir la vidéo</button>
+          <div id="congrats-opa" style="display:none; color:var(--glow-green); font-weight:bold;">✓ Rapport Opabinia validé !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE FINALE : SITE DE FOUILLES DE BURGESS SHALE -->
+  <div class="modal-overlay" id="modal-site">
+    <div class="site-card">
+      <button class="btn-close" onclick="closeModal('modal-site')">&times;</button>
+      
+      <div class="site-image-box">
+        <img src="https://drive.google.com/thumbnail?id=1llwJJbcgSdwVV4L9QEs6oopL4h6ucTOQ&sz=w1280" alt="Paléontologues fouillant le site des Schistes de Burgess">
+      </div>
+
+      <div class="site-body">
+        <div class="site-header">
+          <div>
+            <h2 style="font-size: 1.6rem; color: #fff; margin-bottom: 4px;">Gisement des Schistes de Burgess</h2>
+            <div style="color: var(--glow-cyan); font-size: 0.9rem; font-style: italic;">Carrière Walcott — Parc National Yoho</div>
+          </div>
+          <span style="background: rgba(0, 255, 136, 0.15); color: var(--glow-green); border: 1px solid var(--glow-green); padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;">SITE DU PATRIMOINE MONDIAL UNESCO</span>
+        </div>
+
+        <div class="site-tags">
+          <div class="site-tag-item">
+            <span>Nom du gisement</span>
+            <strong>Burgess Shale (Schistes de Burgess)</strong>
+          </div>
+          <div class="site-tag-item">
+            <span>Pays / Région</span>
+            <strong>Canada (Colombie-Britannique)</strong>
+          </div>
+          <div class="site-tag-item">
+            <span>Altitude des fouilles</span>
+            <strong>2 280 mètres d'altitude</strong>
+          </div>
+          <div class="site-tag-item">
+            <span>Époque géologique</span>
+            <strong>Cambrien moyen (-508 Ma)</strong>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--border-subtle); margin-bottom: 1.2rem;">
+          <h3 style="font-size: 0.95rem; color: #fff; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> Spécimens fossilisés découverts dans cette roche :
+          </h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="border-left: 3px solid var(--glow-red); padding-left: 10px;">
+              <strong style="color: #fff; display: block; font-size: 0.92rem;">Anomalocaris canadensis</strong>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 3px;">
+                Taille : <strong>60 à 100 cm</strong> • Niveau : <strong>Superprédateur</strong> • Vision : <strong>16 000 facettes</strong>
+              </div>
+            </div>
+
+            <div style="border-left: 3px solid var(--glow-pink); padding-left: 10px;">
+              <strong style="color: #fff; display: block; font-size: 0.92rem;">Opabinia regalis</strong>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 3px;">
+                Taille : <strong>4 à 7 cm</strong> • Morphologie : <strong>5 yeux à 360°</strong> • Outil : <strong>Trompe à pince</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size: 0.92rem; line-height: 1.65; color: #cbd5e1;">
+          C'est ici, à plus de 2 200 mètres d'altitude au cœur des Rocheuses canadiennes, que Charles Doolittle Walcott a découvert en 1909 ce trésor paléontologique exceptionnel. Enfouis sous de brutales coulées de boue sous-marines il y a 508 millions d'années, les corps mous d'<em>Anomalocaris</em> et d'<em>Opabinia</em> y ont été fossilisés avec une finesse microscopique, permettant aujourd'hui de reconstituer le premier grand écosystème complexe de notre planète.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="script.js"></script>
+</body>
+</html>
